@@ -15,4 +15,5 @@ pip install -r requirements.txt -i http://pypi.doubanio.com/simple/ --trusted-ho
 ```
 python main.py
 ```
+打开浏览器 localhost:9999/docs
 

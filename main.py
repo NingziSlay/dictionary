@@ -1,6 +1,10 @@
-from typing import Iterator
+from typing import Iterator, List, Dict, Optional
 
 import jieba
+import uvicorn
+from fastapi import FastAPI, Query, HTTPException
+from pydantic import BaseModel
+from starlette import status
 
 dictionary = dict()
 
@@ -34,14 +38,33 @@ def match(chinese: str) -> Iterator:
     return jieba.cut(chinese)
 
 
+app = FastAPI()
+
+
+@app.router.get("/transfer")
+async def transfer(word=Query("", description="要翻译的词")):
+    cut = list(match(word))
+    mapping = dict()
+    for w in cut:
+        mapping[w] = dictionary.get(w, "")
+    result = "_".join(mapping.values())
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="item not found"
+        )
+    return dict(
+        input_word=word,
+        cut=cut,
+        mapping=mapping,
+        result=result
+    )
+
+
 if __name__ == '__main__':
     init()
-    while True:
-        word = input("输出中文词:")
-        words = match(word)
-        matched = filter(lambda x: x is not None, [dictionary.get(w) for w in words])
-        r = "_".join(matched)
-        if not r:
-            print("没有匹配到输入词")
-            continue
-        print(r)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=9999
+    )
