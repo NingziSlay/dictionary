@@ -46,8 +46,8 @@ async def transfer(word=Query("", description="要翻译的词")):
     cut = list(match(word))
     mapping = dict()
     for w in cut:
-        mapping[w] = dictionary.get(w, "")
-    result = "_".join(mapping.values())
+        mapping[w] = dictionary.get(w)
+    result = "_".join(filter(lambda x: x is not None, mapping.values()))
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
